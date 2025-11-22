@@ -16,8 +16,9 @@ func main() {
 	}
 
 	teamHandler := handlers.NewTeamHandler()
+	userHandler := handlers.NewUserHandler()
 
-	router := routes.SetupRouter(teamHandler)
+	router := routes.SetupRouter(teamHandler, userHandler)
 
 	if err := router.Run(":8080"); err != nil {
 		log.Fatal("failed to start server: ", err)
