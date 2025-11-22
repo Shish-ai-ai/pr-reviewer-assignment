@@ -9,6 +9,7 @@ func SetupRouter(teamHandler *handlers.TeamHandler) *gin.Engine {
 	router := gin.Default()
 
 	router.POST("/team/add", teamHandler.AddTeam)
+	router.GET("/team/get", teamHandler.GetTeam)
 
 	return router
 }

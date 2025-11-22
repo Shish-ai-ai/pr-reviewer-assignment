@@ -80,3 +80,35 @@ func (s *TeamService) upsertUser(tx *gorm.DB, member models.TeamMember, teamName
 
 	return result.Error
 }
+
+func (s *TeamService) GetTeam(teamName string) (*models.Team, error) {
+	var teamDB models.TeamDB
+	result := s.db.Where("team_name = ?", teamName).First(&teamDB)
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return nil, errors.New("team not found")
+	} else if result.Error != nil {
+		return nil, result.Error
+	}
+
+	var users []models.User
+	result = s.db.Where("team_name = ?", teamName).Find(&users)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	var members []models.TeamMember
+	for _, user := range users {
+		members = append(members, models.TeamMember{
+			UserID:   user.UserID,
+			Username: user.Username,
+			IsActive: user.IsActive,
+		})
+	}
+
+	team := &models.Team{
+		TeamName: teamName,
+		Members:  members,
+	}
+
+	return team, nil
+}

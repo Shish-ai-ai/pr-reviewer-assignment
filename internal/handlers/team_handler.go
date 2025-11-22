@@ -47,6 +47,26 @@ func (h *TeamHandler) AddTeam(c *gin.Context) {
 	})
 }
 
+func (h *TeamHandler) GetTeam(c *gin.Context) {
+	teamName := c.Query("team_name")
+	if teamName == "" {
+		h.sendError(c, "NOT_FOUND", "team_name parameter is required", 400)
+		return
+	}
+
+	team, err := h.teamService.GetTeam(teamName)
+	if err != nil {
+		if err.Error() == "team not found" {
+			h.sendError(c, "NOT_FOUND", "team not found", 404)
+			return
+		}
+		h.sendError(c, "NOT_FOUND", "Internal server error", 500)
+		return
+	}
+
+	c.JSON(200, team)
+}
+
 func (h *TeamHandler) sendError(c *gin.Context, code, message string, statusCode int) {
 	errorResponse := models.ErrorResponse{}
 	errorResponse.Error.Code = code
