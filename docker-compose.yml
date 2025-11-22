@@ -1,0 +1,33 @@
+version: '3.3'
+
+services:
+  pr-reviewer-db:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: pr_reviewer
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgres_pr_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
+    ports:
+      - "5434:5432"
+
+  pr-reviewer-service:
+    build: .
+    ports:
+      - "8082:8080"
+    environment:
+      DATABASE_HOST: pr-reviewer-db
+      DATABASE_PORT: 5432
+      DATABASE_USER: postgres
+      DATABASE_PASSWORD: password
+      DATABASE_NAME: pr_reviewer
+      SSL_MODE: disable
+    depends_on:
+      - pr-reviewer-db
+    restart: unless-stopped
+
+volumes:
+  postgres_pr_data:
