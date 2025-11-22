@@ -47,6 +47,26 @@ func (h *UserHandler) SetUserActive(c *gin.Context) {
 	})
 }
 
+func (h *UserHandler) GetUserReviews(c *gin.Context) {
+	userID := c.Query("user_id")
+	if userID == "" {
+		h.sendError(c, "NOT_FOUND", "user_id parameter is required", 400)
+		return
+	}
+
+	response, err := h.userService.GetUserReviews(userID)
+	if err != nil {
+		if err.Error() == "user not found" {
+			h.sendError(c, "NOT_FOUND", "user not found", 404)
+			return
+		}
+		h.sendError(c, "NOT_FOUND", "Internal server error", 500)
+		return
+	}
+
+	c.JSON(200, response)
+}
+
 func (h *UserHandler) sendError(c *gin.Context, code, message string, statusCode int) {
 	errorResponse := models.ErrorResponse{}
 	errorResponse.Error.Code = code
