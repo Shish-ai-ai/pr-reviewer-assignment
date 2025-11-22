@@ -58,3 +58,5 @@ coverage.html
 
 # PostgreSQL data (if using local database)
 /postgres_data/
+
+loadtest.js

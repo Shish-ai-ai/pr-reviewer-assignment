@@ -1,0 +1,61 @@
+
+         /\      Grafana   /‾‾/  
+    /\  /  \     |\  __   /  /   
+   /  \/    \    | |/ /  /   ‾‾\ 
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/ 
+
+     execution: local
+        script: loadtest.js
+        output: -
+
+     scenarios: (100.00%) 1 scenario, 10 max VUs, 2m30s max duration (incl. graceful stop):
+              * default: Up to 10 looping VUs for 2m0s over 3 stages (gracefulRampDown: 30s, gracefulStop: 30s)
+
+
+
+  █ THRESHOLDS 
+
+    http_req_duration
+    ✓ 'p(95)<300' p(95)=4.98ms
+
+    http_req_failed
+    ✓ 'rate<0.01' rate=0.00%
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 7280    60.515771/s
+    checks_succeeded...: 100.00% 7280 out of 7280
+    checks_failed......: 0.00%   0 out of 7280
+
+    ✓ GET /team/get status 200
+    ✓ GET /team/get содержит team_name
+    ✓ GET /stats/reviewers status 200
+    ✓ GET /stats/reviewers содержит reviewer_stats
+    ✓ GET /users/getReview status 200
+    ✓ GET /users/getReview содержит user_id
+    ✓ POST /pullRequest/create status 201
+    ✓ POST /pullRequest/create содержит PR
+
+    HTTP
+    http_req_duration..............: avg=2.45ms min=527.74µs med=2.04ms max=12.23ms p(90)=4.27ms p(95)=4.98ms
+      { expected_response:true }...: avg=2.45ms min=527.74µs med=2.04ms max=12.23ms p(90)=4.27ms p(95)=4.98ms
+    http_req_failed................: 0.00%  0 out of 3640
+    http_reqs......................: 3640   30.257885/s
+
+    EXECUTION
+    iteration_duration.............: avg=1.01s  min=1s       med=1.01s  max=1.02s   p(90)=1.01s  p(95)=1.01s 
+    iterations.....................: 910    7.564471/s
+    vus............................: 1      min=1         max=10
+    vus_max........................: 10     min=10        max=10
+
+    NETWORK
+    data_received..................: 44 MB  368 kB/s
+    data_sent......................: 457 kB 3.8 kB/s
+
+
+
+
+running (2m00.3s), 00/10 VUs, 910 complete and 0 interrupted iterations
+default ✓ [======================================] 00/10 VUs  2m0s
