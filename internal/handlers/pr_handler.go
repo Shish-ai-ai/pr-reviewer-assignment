@@ -43,6 +43,29 @@ func (h *PRHandler) CreatePullRequest(c *gin.Context) {
 	})
 }
 
+func (h *PRHandler) MergePullRequest(c *gin.Context) {
+	var request models.MergePRRequest
+
+	if err := c.ShouldBindJSON(&request); err != nil {
+		h.sendError(c, "NOT_FOUND", "Invalid JSON data", 400)
+		return
+	}
+
+	pr, err := h.prService.MergePullRequest(request.PullRequestID)
+	if err != nil {
+		if err.Error() == "PR not found" {
+			h.sendError(c, "NOT_FOUND", "PR not found", 404)
+			return
+		}
+		h.sendError(c, "NOT_FOUND", "Internal server error", 500)
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"pr": pr,
+	})
+}
+
 func (h *PRHandler) sendError(c *gin.Context, code, message string, statusCode int) {
 	errorResponse := models.ErrorResponse{}
 	errorResponse.Error.Code = code

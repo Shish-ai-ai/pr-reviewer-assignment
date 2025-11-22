@@ -12,6 +12,7 @@ func SetupRouter(teamHandler *handlers.TeamHandler, userHandler *handlers.UserHa
 	router.GET("/team/get", teamHandler.GetTeam)
 	router.POST("/users/setIsActive", userHandler.SetUserActive)
 	router.POST("/pullRequest/create", prHandler.CreatePullRequest)
+	router.POST("/pullRequest/merge", prHandler.MergePullRequest)
 
 	return router
 }

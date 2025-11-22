@@ -61,3 +61,7 @@ type CreatePRRequest struct {
 	PullRequestName string `json:"pull_request_name" binding:"required"`
 	AuthorID        string `json:"author_id" binding:"required"`
 }
+
+type MergePRRequest struct {
+	PullRequestID string `json:"pull_request_id" binding:"required"`
+}

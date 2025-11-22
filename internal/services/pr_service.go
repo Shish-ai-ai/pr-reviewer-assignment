@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"prReviewerAssignment/internal/db"
 	"prReviewerAssignment/internal/models"
+	"time"
 )
 
 type PRService struct {
@@ -55,7 +56,6 @@ func (s *PRService) CreatePullRequest(request models.CreatePRRequest) (*models.P
 		return nil, err
 	}
 
-	// Конвертируем slice строк в JSON
 	reviewersJSON, err := json.Marshal(reviewers)
 	if err != nil {
 		tx.Rollback()
@@ -108,4 +108,29 @@ func (s *PRService) selectReviewers(tx *gorm.DB, teamName string, excludeUserID 
 	}
 
 	return reviewers, nil
+}
+
+func (s *PRService) MergePullRequest(prID string) (*models.PullRequest, error) {
+	var pr models.PullRequest
+	result := s.db.Where("pull_request_id = ?", prID).First(&pr)
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return nil, errors.New("PR not found")
+	} else if result.Error != nil {
+		return nil, result.Error
+	}
+
+	if pr.Status == "MERGED" {
+		return &pr, nil
+	}
+
+	now := time.Now()
+	pr.Status = "MERGED"
+	pr.MergedAt = &now
+
+	result = s.db.Save(&pr)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return &pr, nil
 }
