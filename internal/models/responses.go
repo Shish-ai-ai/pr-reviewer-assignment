@@ -16,3 +16,12 @@ type UserReviewResponse struct {
 	UserID       string             `json:"user_id"`
 	PullRequests []PullRequestShort `json:"pull_requests"`
 }
+
+type ReviewerStats struct {
+	UserID  string `json:"user_id"`
+	Count   int    `json:"count"`
+}
+
+type StatsResponse struct {
+	ReviewerStats []ReviewerStats `json:"reviewer_stats"`
+}

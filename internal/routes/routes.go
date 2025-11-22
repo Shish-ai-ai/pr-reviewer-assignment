@@ -1,11 +1,11 @@
 package routes
 
 import (
-	"github.com/gin-gonic/gin"
 	"prReviewerAssignment/internal/handlers"
+	"github.com/gin-gonic/gin"
 )
 
-func SetupRouter(teamHandler *handlers.TeamHandler, userHandler *handlers.UserHandler, prHandler *handlers.PRHandler) *gin.Engine {
+func SetupRouter(teamHandler *handlers.TeamHandler, userHandler *handlers.UserHandler, prHandler *handlers.PRHandler, statsHandler *handlers.StatsHandler) *gin.Engine {
 	router := gin.Default()
 
 	router.POST("/team/add", teamHandler.AddTeam)
@@ -15,6 +15,7 @@ func SetupRouter(teamHandler *handlers.TeamHandler, userHandler *handlers.UserHa
 	router.POST("/pullRequest/create", prHandler.CreatePullRequest)
 	router.POST("/pullRequest/merge", prHandler.MergePullRequest)
 	router.POST("/pullRequest/reassign", prHandler.ReassignReviewer)
+	router.GET("/stats/reviewers", statsHandler.GetReviewerStats)
 
 	return router
 }
