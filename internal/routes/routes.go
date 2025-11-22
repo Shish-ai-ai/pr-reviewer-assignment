@@ -5,12 +5,13 @@ import (
 	"prReviewerAssignment/internal/handlers"
 )
 
-func SetupRouter(teamHandler *handlers.TeamHandler, userHandler *handlers.UserHandler) *gin.Engine {
+func SetupRouter(teamHandler *handlers.TeamHandler, userHandler *handlers.UserHandler, prHandler *handlers.PRHandler) *gin.Engine {
 	router := gin.Default()
 
 	router.POST("/team/add", teamHandler.AddTeam)
 	router.GET("/team/get", teamHandler.GetTeam)
 	router.POST("/users/setIsActive", userHandler.SetUserActive)
+	router.POST("/pullRequest/create", prHandler.CreatePullRequest)
 
 	return router
 }

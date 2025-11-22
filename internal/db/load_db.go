@@ -26,7 +26,7 @@ func InitDB() error {
 		return err
 	}
 
-	err = db.AutoMigrate(&models.User{}, &models.TeamDB{})
+	err = db.AutoMigrate(&models.User{}, &models.TeamDB{}, &models.PullRequest{})
 	if err != nil {
 		return err
 	}
