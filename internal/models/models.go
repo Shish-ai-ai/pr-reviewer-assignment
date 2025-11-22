@@ -5,13 +5,6 @@ import (
 	"time"
 )
 
-type ErrorResponse struct {
-	Error struct {
-		Code    string `json:"code"`
-		Message string `json:"message"`
-	} `json:"error"`
-}
-
 type TeamMember struct {
 	UserID   string `json:"user_id"`
 	Username string `json:"username"`
@@ -54,14 +47,4 @@ type PullRequestShort struct {
 	PullRequestName string `json:"pull_request_name"`
 	AuthorID        string `json:"author_id"`
 	Status          string `json:"status"`
-}
-
-type CreatePRRequest struct {
-	PullRequestID   string `json:"pull_request_id" binding:"required"`
-	PullRequestName string `json:"pull_request_name" binding:"required"`
-	AuthorID        string `json:"author_id" binding:"required"`
-}
-
-type MergePRRequest struct {
-	PullRequestID string `json:"pull_request_id" binding:"required"`
 }

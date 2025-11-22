@@ -134,3 +134,122 @@ func (s *PRService) MergePullRequest(prID string) (*models.PullRequest, error) {
 
 	return &pr, nil
 }
+
+func (s *PRService) ReassignReviewer(prID string, oldReviewerID string) (*models.PullRequest, string, error) {
+	tx := s.db.Begin()
+	if tx.Error != nil {
+		return nil, "", tx.Error
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	var pr models.PullRequest
+	result := tx.Where("pull_request_id = ?", prID).First(&pr)
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		tx.Rollback()
+		return nil, "", errors.New("PR not found")
+	} else if result.Error != nil {
+		tx.Rollback()
+		return nil, "", result.Error
+	}
+
+	if pr.Status == "MERGED" {
+		tx.Rollback()
+		return nil, "", errors.New("cannot reassign on merged PR")
+	}
+
+	var reviewers []string
+	if err := json.Unmarshal(pr.AssignedReviewers, &reviewers); err != nil {
+		tx.Rollback()
+		return nil, "", err
+	}
+
+	found := false
+	for _, reviewer := range reviewers {
+		if reviewer == oldReviewerID {
+			found = true
+			break
+		}
+	}
+	if !found {
+		tx.Rollback()
+		return nil, "", errors.New("reviewer is not assigned to this PR")
+	}
+
+	var oldReviewer models.User
+	result = tx.Where("user_id = ? AND is_active = ?", oldReviewerID, true).First(&oldReviewer)
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		tx.Rollback()
+		return nil, "", errors.New("old reviewer not found or inactive")
+	} else if result.Error != nil {
+		tx.Rollback()
+		return nil, "", result.Error
+	}
+
+	newReviewer, err := s.findReplacementCandidate(tx, oldReviewer.TeamName, pr.AuthorID, reviewers)
+	if err != nil {
+		tx.Rollback()
+		return nil, "", err
+	}
+
+	for i, reviewer := range reviewers {
+		if reviewer == oldReviewerID {
+			reviewers[i] = newReviewer
+			break
+		}
+	}
+
+	reviewersJSON, err := json.Marshal(reviewers)
+	if err != nil {
+		tx.Rollback()
+		return nil, "", err
+	}
+	pr.AssignedReviewers = datatypes.JSON(reviewersJSON)
+
+	result = tx.Save(&pr)
+	if result.Error != nil {
+		tx.Rollback()
+		return nil, "", result.Error
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		return nil, "", err
+	}
+
+	return &pr, newReviewer, nil
+}
+
+func (s *PRService) findReplacementCandidate(tx *gorm.DB, teamName string, authorID string, currentReviewers []string) (string, error) {
+	var availableUsers []models.User
+
+	query := "team_name = ? AND is_active = ? AND user_id != ?"
+	params := []interface{}{teamName, true, authorID}
+
+	if len(currentReviewers) > 0 {
+		query += " AND user_id NOT IN (?"
+		params = append(params, currentReviewers[0])
+		for i := 1; i < len(currentReviewers); i++ {
+			query += ",?"
+			params = append(params, currentReviewers[i])
+		}
+		query += ")"
+	}
+
+	result := tx.Where(query, params...).Find(&availableUsers)
+	if result.Error != nil {
+		return "", result.Error
+	}
+
+	if len(availableUsers) == 0 {
+		return "", errors.New("no active replacement candidate in team")
+	}
+
+	rand.Shuffle(len(availableUsers), func(i, j int) {
+		availableUsers[i], availableUsers[j] = availableUsers[j], availableUsers[i]
+	})
+
+	return availableUsers[0].UserID, nil
+}

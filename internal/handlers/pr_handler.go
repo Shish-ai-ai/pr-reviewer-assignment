@@ -66,6 +66,39 @@ func (h *PRHandler) MergePullRequest(c *gin.Context) {
 	})
 }
 
+func (h *PRHandler) ReassignReviewer(c *gin.Context) {
+	var request models.ReassignPRRequest
+
+	if err := c.ShouldBindJSON(&request); err != nil {
+		h.sendError(c, "NOT_FOUND", "Invalid JSON data", 400)
+		return
+	}
+
+	pr, newReviewer, err := h.prService.ReassignReviewer(request.PullRequestID, request.OldReviewerID)
+	if err != nil {
+		switch err.Error() {
+		case "PR not found":
+			h.sendError(c, "NOT_FOUND", "PR not found", 404)
+		case "old reviewer not found or inactive":
+			h.sendError(c, "NOT_FOUND", "reviewer not found or inactive", 404)
+		case "cannot reassign on merged PR":
+			h.sendError(c, "PR_MERGED", "cannot reassign on merged PR", 409)
+		case "reviewer is not assigned to this PR":
+			h.sendError(c, "NOT_ASSIGNED", "reviewer is not assigned to this PR", 409)
+		case "no active replacement candidate in team":
+			h.sendError(c, "NO_CANDIDATE", "no active replacement candidate in team", 409)
+		default:
+			h.sendError(c, "NOT_FOUND", "Internal server error", 500)
+		}
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"pr":          pr,
+		"replaced_by": newReviewer,
+	})
+}
+
 func (h *PRHandler) sendError(c *gin.Context, code, message string, statusCode int) {
 	errorResponse := models.ErrorResponse{}
 	errorResponse.Error.Code = code

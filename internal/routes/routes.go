@@ -13,6 +13,7 @@ func SetupRouter(teamHandler *handlers.TeamHandler, userHandler *handlers.UserHa
 	router.POST("/users/setIsActive", userHandler.SetUserActive)
 	router.POST("/pullRequest/create", prHandler.CreatePullRequest)
 	router.POST("/pullRequest/merge", prHandler.MergePullRequest)
+	router.POST("/pullRequest/reassign", prHandler.ReassignReviewer)
 
 	return router
 }
